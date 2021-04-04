@@ -96,7 +96,14 @@ namespace GitHub.Services.WebApi
                         if (sbCurrentPathPart.Length > 0)
                         {
                             sbResult.Append('/');
-                            sbResult.Append(sbCurrentPathPart.ToString());
+                            if (routeReplacementOptions.HasFlag(RouteReplacementOptions.EscapeUri))
+                            {
+                                sbResult.Append(Uri.EscapeDataString(sbCurrentPathPart.ToString()));
+                            }
+                            else
+                            {
+                                sbResult.Append(sbCurrentPathPart.ToString());
+                            }
                             sbCurrentPathPart.Clear();
                         }
                     }
@@ -133,12 +140,14 @@ namespace GitHub.Services.WebApi
             if (sbCurrentPathPart.Length > 0)
             {
                 sbResult.Append('/');
-                sbResult.Append(sbCurrentPathPart.ToString());
-            }
-
-            if (routeReplacementOptions.HasFlag(RouteReplacementOptions.EscapeUri))
-            {
-                sbResult = new StringBuilder(Uri.EscapeUriString(sbResult.ToString()));
+                if (routeReplacementOptions.HasFlag(RouteReplacementOptions.EscapeUri))
+                {
+                    sbResult.Append(Uri.EscapeDataString(sbCurrentPathPart.ToString()));
+                }
+                else
+                {
+                    sbResult.Append(sbCurrentPathPart.ToString());
+                }
             }
 
             if (routeReplacementOptions.HasFlag(RouteReplacementOptions.AppendUnusedAsQueryParams) && unusedValues.Count > 0)

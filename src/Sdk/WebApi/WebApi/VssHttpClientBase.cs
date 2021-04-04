@@ -77,8 +77,6 @@ namespace GitHub.Services.WebApi
             m_client.BaseAddress = baseUrl;
             m_formatter = new VssJsonMediaTypeFormatter();
 
-            SetServicePointOptions();
-
             SetTokenStorageUrlIfNeeded(pipeline);
         }
 
@@ -833,7 +831,7 @@ namespace GitHub.Services.WebApi
             {
                 if (userState != null)
                 {
-                    message.Properties[UserStatePropertyName] = userState;
+                    message.Options.Set(new HttpRequestOptionsKey<object>(UserStatePropertyName), userState);
                 }
                 
                 if (!message.Headers.Contains(Common.Internal.HttpHeaders.VssE2EID))
@@ -842,11 +840,11 @@ namespace GitHub.Services.WebApi
                 }
                 VssHttpEventSource.Log.HttpRequestStart(traceActivity, message);
                 message.Trace();
-                message.Properties[VssTraceActivity.PropertyName] = traceActivity;
+                message.Options.Set(new HttpRequestOptionsKey<VssTraceActivity>(VssTraceActivity.PropertyName), traceActivity);
 
                 // Send the completion option to the inner handler stack so we know when it's safe to buffer
                 // and when we should avoid buffering.
-                message.Properties[VssHttpRequestSettings.HttpCompletionOptionPropertyName] = completionOption;
+                message.Options.Set(new HttpRequestOptionsKey<HttpCompletionOption>(VssHttpRequestSettings.HttpCompletionOptionPropertyName), completionOption);
 
                 //ConfigureAwait(false) enables the continuation to be run outside
                 //any captured SyncronizationContext (such as ASP.NET's) which keeps things
@@ -1149,23 +1147,6 @@ namespace GitHub.Services.WebApi
                 }
             }
         }
-
-        private void SetServicePointOptions()
-        {
-            if (BaseAddress != null)
-            {
-                ServicePoint servicePoint = ServicePointManager.FindServicePoint(BaseAddress);
-                servicePoint.UseNagleAlgorithm = false;
-                servicePoint.SetTcpKeepAlive(
-                    enabled: true,
-                    keepAliveTime: c_keepAliveTime,
-                    keepAliveInterval: c_keepAliveInterval);
-            }
-        }
-
-        // ServicePoint defaults
-        private const int c_keepAliveTime = 30000;
-        private const int c_keepAliveInterval = 5000;
 
         #region IDisposable Support
         private bool m_isDisposed = false;
