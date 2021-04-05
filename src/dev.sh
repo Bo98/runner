@@ -48,7 +48,12 @@ elif [[ "$CURRENT_PLATFORM" == 'linux' ]]; then
         esac
     fi
 elif [[ "$CURRENT_PLATFORM" == 'darwin' ]]; then
-    RUNTIME_ID='osx-x64'
+    CPU_NAME="$(uname -m)"
+    if [[ "$CPU_NAME" == "arm64" ]]; then
+        RUNTIME_ID="osx-arm64"
+    else
+        RUNTIME_ID="osx-x64"
+    fi
 fi
 
 if [[ -n "$DEV_TARGET_RUNTIME" ]]; then
@@ -58,7 +63,7 @@ fi
 # Make sure current platform support publish the dotnet runtime
 # Windows can publish win-x86/x64
 # Linux can publish linux-x64/arm/arm64
-# OSX can publish osx-x64
+# OSX can publish osx-x64/arm64
 if [[ "$CURRENT_PLATFORM" == 'windows' ]]; then
     if [[ ("$RUNTIME_ID" != 'win-x86') && ("$RUNTIME_ID" != 'win-x64') ]]; then
         echo "Failed: Can't build $RUNTIME_ID package $CURRENT_PLATFORM" >&2
@@ -70,7 +75,7 @@ elif [[ "$CURRENT_PLATFORM" == 'linux' ]]; then
        exit 1
     fi
 elif [[ "$CURRENT_PLATFORM" == 'darwin' ]]; then
-    if [[ ("$RUNTIME_ID" != 'osx-x64') ]]; then
+    if [[ ("$RUNTIME_ID" != 'osx-x64') && ("$RUNTIME_ID" != 'osx-arm64') ]]; then
        echo "Failed: Can't build $RUNTIME_ID package $CURRENT_PLATFORM" >&2
        exit 1
     fi
@@ -196,6 +201,9 @@ if [[ (! -d "${DOTNETSDK_INSTALLDIR}") || (! -e "${DOTNETSDK_INSTALLDIR}/.${DOTN
         powershell -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command "& \"./Misc/dotnet-install.ps1\" -Version ${DOTNETSDK_VERSION} -InstallDir \"${sdkinstallwindow_path}\" -NoPath; exit \$LastExitCode;" || checkRC dotnet-install.ps1
     else
         bash ./Misc/dotnet-install.sh --version ${DOTNETSDK_VERSION} --install-dir "${DOTNETSDK_INSTALLDIR}" --no-path || checkRC dotnet-install.sh
+        if [[ ("$CURRENT_PLATFORM" == "darwin") ]]; then
+            sed -i '' 's/Crossgen2RuntimeIdentifiers="linux-musl-x64;linux-x64;win-x64"/Crossgen2RuntimeIdentifiers="linux-musl-x64;linux-x64;win-x64;osx-x64;osx-arm64"/' "${DOTNETSDK_INSTALLDIR}/sdk/${DOTNETSDK_VERSION}/Microsoft.NETCoreSdk.BundledVersions.props"
+        fi
     fi
 
     echo "${DOTNETSDK_VERSION}" > "${DOTNETSDK_INSTALLDIR}/.${DOTNETSDK_VERSION}"

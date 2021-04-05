@@ -4,6 +4,7 @@ PRECACHE=$2
 
 NODE_URL=https://nodejs.org/dist
 NODE12_VERSION="12.13.1"
+NODE12_VERSION_MACOS_ARM64="12.22.0"
 
 get_abs_path() {
   # exploits the fact that pwd will print abs path when no args
@@ -134,6 +135,10 @@ fi
 # Download the external tools only for OSX.
 if [[ "$PACKAGERUNTIME" == "osx-x64" ]]; then
     acquireExternalTool "$NODE_URL/v${NODE12_VERSION}/node-v${NODE12_VERSION}-darwin-x64.tar.gz" node12 fix_nested_dir
+fi
+
+if [[ "$PACKAGERUNTIME" == "osx-arm64" ]]; then
+    acquireExternalTool "https://github.com/Bo98/node-darwin-arm64-builds/releases/download/v${NODE12_VERSION_MACOS_ARM64}/node-v${NODE12_VERSION_MACOS_ARM64}-darwin-arm64.tar.gz" node12 fix_nested_dir
 fi
 
 # Download the external tools for Linux PACKAGERUNTIMEs.
