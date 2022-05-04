@@ -4,12 +4,11 @@ on:
   workflow_dispatch:
   push:
     branches:
-    - macos-arm64
-    - macos-arm64-test
+    - macos-arm64-bo98
   
 jobs:
   build:
-    runs-on: [self-hosted, macOS, ARM64]
+    runs-on: macos-latest
     steps:
     - uses: actions/checkout@v1
 
@@ -20,10 +19,10 @@ jobs:
       working-directory: src
 
     # Run tests
-    - name: L0
-      run: |
-        ./dev.sh test
-      working-directory: src
+    #- name: L0
+    #  run: |
+    #    ./dev.sh test
+    #  working-directory: src
 
     # Create runner package tar.gz/zip
     - name: Package Release
